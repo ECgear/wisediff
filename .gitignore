@@ -1,0 +1,29 @@
+# Dependencies / build
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Secrets — never commit
+.env
+*.env
+.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+*secret*
+*credential*
+*token*
+*service*account*.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

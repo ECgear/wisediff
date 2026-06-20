@@ -1,0 +1,35 @@
+# Changelog
+
+All notable changes to this project are documented here.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [0.1.0] - 2026-06-20
+
+### Added
+- First release. A privacy-first, client-side text diff tool — nothing is uploaded;
+  all comparison runs in the browser and works offline (`file://`).
+- Two-pane comparison with live (debounced) compare and a manual compare button.
+- Three diff granularities: line (with inline character highlighting on changed lines),
+  word, and character. Character mode uses diff-match-patch semantic cleanup, which reads
+  well for Japanese text.
+- **Clear newline/whitespace differences**: invisible characters can be shown as glyphs
+  (· space, → tab, ¶ newline, ␣ no-break space), whitespace-only changes are always
+  strongly highlighted even when glyphs are off, and line-ending (LF/CRLF/CR/mixed) and
+  final-newline mismatches are surfaced as badges.
+- Search, replace, and regular-expression support (with flags, invalid-pattern detection,
+  and `$1` backreferences), scoped to pane A, B, or both, with match highlighting.
+- Ignore options (leading/trailing whitespace, case), side-by-side and inline (unified)
+  views, light/dark themes, three color schemes (default, green, mono), synchronized
+  scrolling, line numbers, diff statistics, swap/clear, copy result, save result as HTML,
+  local file loading via drag-and-drop or picker (read in-browser, never uploaded), and
+  optional local persistence.
+- Japanese (default) and English UI.
+- No-network guarantee enforced by a `connect-src 'none'` Content-Security-Policy.
+- Offline single-file build (`npm run build` → `dist/index.html`), zero runtime dependencies;
+  diff libraries are vendored (jsdiff BSD-3-Clause, diff-match-patch-es Apache-2.0).
+
+[Unreleased]: https://github.com/ECgear/wisediff/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/ECgear/wisediff/releases/tag/v0.1.0

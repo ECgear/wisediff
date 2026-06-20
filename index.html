@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ja" data-theme="light" data-scheme="default">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!--
+    プライバシー保証: connect-src 'none' で fetch/XHR/WebSocket/sendBeacon を不能化。
+    入力テキストは一切ネットワークに出ない（オフライン file:// でも動作）。
+  -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; connect-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>wisediff — テキスト差分 / Text diff</title>
+  <meta name="description" content="2つの文章の違いをブラウザ内だけで比較。検索・置換・正規表現対応。テキストは送信されません。">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <h1>wisediff</h1>
+      <span class="tagline" data-i18n="tagline"></span>
+    </div>
+    <div class="header-controls">
+      <div class="seg lang-seg" role="group" aria-label="language">
+        <button type="button" data-lang="ja">日本語</button>
+        <button type="button" data-lang="en">EN</button>
+      </div>
+      <select id="schemeSelect" aria-label="color scheme" title="">
+        <option value="default" data-i18n="schemeDefault"></option>
+        <option value="green" data-i18n="schemeGreen"></option>
+        <option value="mono" data-i18n="schemeMono"></option>
+      </select>
+      <button type="button" id="btnTheme" class="icon-btn" title="theme">◐</button>
+    </div>
+  </header>
+
+  <p class="privacy" data-i18n="privacy"></p>
+
+  <section class="toolbar" aria-label="options">
+    <div class="control">
+      <span class="control-label" data-i18n="mode"></span>
+      <div class="seg" role="group">
+        <button type="button" data-mode="line" data-i18n="modeLine"></button>
+        <button type="button" data-mode="word" data-i18n="modeWord"></button>
+        <button type="button" data-mode="char" data-i18n="modeChar"></button>
+      </div>
+    </div>
+    <div class="control">
+      <span class="control-label" data-i18n="view"></span>
+      <div class="seg" role="group">
+        <button type="button" data-view="sbs" data-i18n="viewSbs"></button>
+        <button type="button" data-view="inline" data-i18n="viewInline"></button>
+      </div>
+    </div>
+    <label class="chk"><input type="checkbox" id="optShowWs"><span data-i18n="showWs"></span></label>
+    <label class="chk"><input type="checkbox" id="optIgnoreWs"><span data-i18n="ignoreWs"></span></label>
+    <label class="chk"><input type="checkbox" id="optIgnoreCase"><span data-i18n="ignoreCase"></span></label>
+    <label class="chk"><input type="checkbox" id="optSyncScroll"><span data-i18n="syncScroll"></span></label>
+    <label class="chk"><input type="checkbox" id="optLineNumbers"><span data-i18n="lineNumbers"></span></label>
+  </section>
+
+  <section class="panes">
+    <div class="pane">
+      <div class="pane-head">
+        <label class="pane-label" for="inputA" data-i18n="leftLabel"></label>
+        <button type="button" id="btnLoadA" class="mini" data-i18n="loadFile"></button>
+      </div>
+      <div class="editor-wrap">
+        <div class="hl" id="hlA" aria-hidden="true"></div>
+        <textarea id="inputA" spellcheck="false" data-i18n-ph="leftPlaceholder"></textarea>
+      </div>
+    </div>
+    <div class="pane">
+      <div class="pane-head">
+        <label class="pane-label" for="inputB" data-i18n="rightLabel"></label>
+        <button type="button" id="btnLoadB" class="mini" data-i18n="loadFile"></button>
+      </div>
+      <div class="editor-wrap">
+        <div class="hl" id="hlB" aria-hidden="true"></div>
+        <textarea id="inputB" spellcheck="false" data-i18n-ph="rightPlaceholder"></textarea>
+      </div>
+    </div>
+  </section>
+
+  <section class="actions">
+    <button type="button" id="btnCompare" class="primary" data-i18n="compare"></button>
+    <label class="chk"><input type="checkbox" id="optLive"><span data-i18n="live"></span></label>
+    <button type="button" id="btnSwap" data-i18n="swap"></button>
+    <button type="button" id="btnClear" data-i18n="clear"></button>
+    <span class="spacer"></span>
+    <button type="button" id="btnCopy" data-i18n="copyResult"></button>
+    <button type="button" id="btnSave" data-i18n="saveHtml"></button>
+    <button type="button" id="btnSaveLocal" class="mini" data-i18n="saveLocal"></button>
+    <button type="button" id="btnClearSaved" class="mini" data-i18n="clearSaved"></button>
+  </section>
+
+  <div class="search-bar" id="searchBar" hidden>
+    <input type="text" id="findInput" data-i18n-ph="findPlaceholder" autocomplete="off">
+    <input type="text" id="replaceInput" data-i18n-ph="replacePlaceholder" autocomplete="off">
+    <label class="chk"><input type="checkbox" id="optRegex"><span data-i18n="regex"></span></label>
+    <label class="chk"><input type="checkbox" id="optMatchCase"><span data-i18n="matchCase"></span></label>
+    <span class="target-group">
+      <span data-i18n="target"></span>
+      <label><input type="radio" name="searchTarget" value="A">A</label>
+      <label><input type="radio" name="searchTarget" value="B">B</label>
+      <label><input type="radio" name="searchTarget" value="both" checked><span data-i18n="targetBoth"></span></label>
+    </span>
+    <button type="button" id="btnReplaceOne" data-i18n="replaceOne"></button>
+    <button type="button" id="btnReplaceAll" data-i18n="replaceAll"></button>
+    <span id="searchStatus" class="search-status"></span>
+    <button type="button" id="btnSearchClose" class="icon-btn" aria-label="close">✕</button>
+  </div>
+
+  <div class="stats" id="stats"></div>
+  <div class="result" id="result"></div>
+
+  <footer class="app-footer">
+    <span class="kbd-hint" data-i18n="keyboardHint"></span>
+    <nav>
+      <a href="https://github.com/ECgear/wisediff#readme" data-i18n="footerHowto"></a>
+      <a href="https://github.com/ECgear/wisediff/blob/main/docs/PRIVACY.md" data-i18n="footerPrivacy"></a>
+      <a href="https://github.com/ECgear/wisediff" data-i18n="footerSource"></a>
+    </nav>
+  </footer>
+
+  <input type="file" id="fileInput" accept=".txt,.md,.json,.csv,.js,.ts,.html,.css,.xml,.yml,.yaml,.log,text/*" hidden>
+
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>

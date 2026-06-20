@@ -1,0 +1,38 @@
+{
+  "name": "wisediff",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Privacy-first, client-side text diff tool. Search, replace, regex, whitespace-aware, with clear newline differences. Nothing is uploaded — everything runs in the browser.",
+  "keywords": [
+    "diff",
+    "text-diff",
+    "compare",
+    "japanese",
+    "privacy",
+    "client-side",
+    "regex",
+    "offline",
+    "whitespace"
+  ],
+  "homepage": "https://github.com/ECgear/wisediff#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ECgear/wisediff.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ECgear/wisediff/issues"
+  },
+  "author": "ECgear",
+  "license": "MIT",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "node scripts/build.mjs",
+    "test": "node --test",
+    "preflight": "node scripts/preflight.mjs",
+    "prepare": "git config core.hooksPath .githooks || true"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

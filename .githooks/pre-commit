@@ -1,0 +1,9 @@
+#!/bin/sh
+# Block commits that would introduce secrets or other publish risks.
+# Bypass only when you are certain: git commit --no-verify
+node scripts/preflight.mjs --staged || {
+  echo "" >&2
+  echo "✖ pre-commit blocked by preflight (see above)." >&2
+  echo "  If this is a false positive, re-run with: git commit --no-verify" >&2
+  exit 1
+}
