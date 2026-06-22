@@ -68,7 +68,7 @@ curl -fsSL "https://cdn.jsdelivr.net/npm/diff-match-patch-es@<X.Y.Z>/+esm" -o sr
 **サイトのヘッダ／パンくず／フッターを付けて配信する Pattern B**（既存 `image` ツール方式）。
 ツール本体（自己完結 HTML）を `public/tools/diff/app/` に置き、Astro ページ
 `src/pages/tools/diff.astro` が `BaseLayout` + `Breadcrumbs` でラップして `/tools/diff/` を生成、
-本体を iframe（`/tools/diff/app/?embed=1`）で埋め込む。本体は `?embed=1` のときブランド／フッターを隠し、
+本体を iframe（`/tools/diff/app/index.html?embed=1`）で埋め込む。本体は `?embed=1` のときブランド／フッターを隠し、
 `postMessage` で高さを通知する（iframe が自動で高さ追従）。OSS ソースは1つのまま、本体を変えたら
 再ビルド＋下記 cp だけで本番に反映できる（単一ソース）。
 
@@ -80,9 +80,11 @@ cp dist/index.html /Users/xx/Cursor/makegoodlife/site/public/tools/diff/app/inde
 - ラッパー `diff.astro` が `/tools/diff/` を生成するため、`public/tools/diff/index.html` は**置かない**
   （ルート衝突回避。ツール本体は必ず `app/` サブパスに置く）。
 - ツール一覧のカード（`src/pages/tools/index.astro` の「テキスト差分」）は `/tools/diff/` のままで変更不要。
-- iframe のディレクトリ配信（`/tools/diff/app/`）は Firebase（`cleanUrls` + `trailingSlash`）が解決する。
-  `astro dev` / `astro preview` はディレクトリ index を解決しないので、ローカル確認は `dist` を
-  ディレクトリ index 対応の静的サーバ（例: `python3 -m http.server --directory dist`）で行う。
+- **iframe の src は実ファイル形 `/tools/diff/app/index.html?embed=1`**（ディレクトリ形 `…/app/?embed=1` ではない）。
+  `astro dev` / `astro preview` は public のディレクトリ index（`…/app/` → `app/index.html`）を配信しないため。
+  本番 Firebase は `cleanUrls` で `…/index.html?embed=1` → 301 →`…/app/?embed=1`（クエリ保持）に解決するので両環境で動く。
+- ローカルで合成ページ（chrome＋iframe）を見るなら `astro dev`（site）で `/tools/diff/`。本番同等のディレクトリ
+  配信を再現したいときは `python3 -m http.server --directory dist`（要 `astro build`）。
 
 その後（KMDRKK 側のルール）:
 
