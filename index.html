@@ -84,14 +84,13 @@
   <section class="actions">
     <button type="button" id="btnSwap" data-i18n="swap"></button>
     <button type="button" id="btnClear" data-i18n="clear"></button>
-    <button type="button" id="btnSearch" data-i18n="searchToggle" aria-expanded="false" aria-controls="searchBar"></button>
     <span class="spacer"></span>
     <button type="button" id="btnCopyA" data-i18n="copyA"></button>
     <button type="button" id="btnCopyB" data-i18n="copyB"></button>
     <button type="button" id="btnSave" data-i18n="saveHtml"></button>
   </section>
 
-  <div class="search-bar" id="searchBar" hidden>
+  <div class="search-bar" id="searchBar">
     <input type="text" id="findInput" data-i18n-ph="findPlaceholder" autocomplete="off">
     <input type="text" id="replaceInput" data-i18n-ph="replacePlaceholder" autocomplete="off">
     <label class="chk"><input type="checkbox" id="optRegex"><span data-i18n="regex"></span></label>
@@ -105,7 +104,6 @@
     <button type="button" id="btnReplaceOne" data-i18n="replaceOne"></button>
     <button type="button" id="btnReplaceAll" data-i18n="replaceAll"></button>
     <span id="searchStatus" class="search-status"></span>
-    <button type="button" id="btnSearchClose" class="icon-btn" aria-label="close">✕</button>
   </div>
   <div class="regex-help" id="regexHelp" hidden>
     <span class="regex-help-title" data-i18n="regexHelpTitle"></span>

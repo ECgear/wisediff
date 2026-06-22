@@ -401,7 +401,7 @@ function bind() {
   // 入力
   for (const side of ['A', 'B']) {
     const ta = $('input' + side);
-    ta.addEventListener('input', () => { persistTextIfEnabled(); liveCompare(); if (!$('searchBar').hidden) updateHighlights(); });
+    ta.addEventListener('input', () => { persistTextIfEnabled(); liveCompare(); updateHighlights(); });
     ta.addEventListener('scroll', () => {
       $('hl' + side).scrollTop = ta.scrollTop; $('hl' + side).scrollLeft = ta.scrollLeft;
       if (state.syncScroll) { const o = side === 'A' ? 'B' : 'A'; $('input' + o).scrollTop = ta.scrollTop; }
@@ -434,34 +434,24 @@ function bind() {
   $('btnTheme').addEventListener('click', () => { state.theme = state.theme === 'dark' ? 'light' : 'dark'; saveSettings(); applyTheme(); });
   $('schemeSelect').addEventListener('change', (e) => { state.scheme = e.target.value; saveSettings(); applyTheme(); });
 
-  // 検索バー
-  $('btnSearch').addEventListener('click', toggleSearch);
+  // 検索バー（常時表示）
   $('findInput').addEventListener('input', updateHighlights);
   $('optRegex').addEventListener('change', () => { syncRegexHelp(); updateHighlights(); });
   $('optMatchCase').addEventListener('change', updateHighlights);
   for (const el of document.querySelectorAll('input[name="searchTarget"]')) el.addEventListener('change', updateHighlights);
   $('btnReplaceOne').addEventListener('click', () => doReplace(false));
   $('btnReplaceAll').addEventListener('click', () => doReplace(true));
-  $('btnSearchClose').addEventListener('click', closeSearch);
 
   // キーボード
   document.addEventListener('keydown', (e) => {
     const mod = e.ctrlKey || e.metaKey;
-    if (mod && e.key === 'f') { e.preventDefault(); openSearch(); }
+    if (mod && e.key === 'f') { e.preventDefault(); focusSearch(); }
     else if (mod && e.key === 'Enter') { e.preventDefault(); compare(); }
-    else if (e.key === 'Escape' && !$('searchBar').hidden) { closeSearch(); }
   });
 }
 
-function setSearchToggle(open) {
-  const b = $('btnSearch');
-  if (!b) return;
-  b.setAttribute('aria-expanded', open ? 'true' : 'false');
-  b.classList.toggle('active', open);
-}
-function openSearch() { $('searchBar').hidden = false; setSearchToggle(true); syncRegexHelp(); $('findInput').focus(); $('findInput').select(); updateHighlights(); }
-function closeSearch() { $('searchBar').hidden = true; $('regexHelp').hidden = true; setSearchToggle(false); for (const s of ['A', 'B']) $('hl' + s).innerHTML = ''; }
-function toggleSearch() { if ($('searchBar').hidden) openSearch(); else closeSearch(); }
+/* 検索・置換バーは常時表示。Ctrl/⌘+F は検索欄へフォーカスするだけ。 */
+function focusSearch() { $('findInput').focus(); $('findInput').select(); }
 
 /* ---------- 正規表現の早見表 ---------- */
 function buildRegexHelp() {
