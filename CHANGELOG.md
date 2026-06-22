@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (no server) and that splitting into smaller chunks is faster — so huge pastes never freeze the page.
 - **Embed mode (`?embed=1`).** Hides the brand and footer and reports content height to the
   parent via `postMessage`, for embedding the tool in a host page (used on make-good-life.com).
+- **Jump to differences.** Prev/Next buttons with a counter move between changed blocks,
+  scrolling each to the center of the result and highlighting the current one; the result area
+  is now an internal scroll pane so navigation works both standalone and embedded.
 
 ### Changed
 - "Copy result" is now two buttons — **Copy A** and **Copy B** — each copying only that side's text.

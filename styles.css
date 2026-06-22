@@ -228,8 +228,13 @@ button.flash { animation: flash 0.6s; }
 .badge { color: var(--fg-soft); background: var(--bg-soft); border: 1px solid var(--border); border-radius: 999px; padding: 1px 9px; }
 .badge.warn { color: var(--stat-chg); border-color: var(--ws-strong-outline); }
 
+/* 相違箇所ジャンプのナビ */
+.diff-nav { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; }
+.diff-nav[hidden] { display: none; }
+.diff-nav-counter { color: var(--fg-soft); font-size: 0.82rem; font-variant-numeric: tabular-nums; }
+
 /* result */
-.result { border: 1px solid var(--border); border-radius: 8px; overflow: auto; background: var(--bg-panel); }
+.result { border: 1px solid var(--border); border-radius: 8px; overflow: auto; background: var(--bg-panel); max-height: 70vh; }
 .result .placeholder { color: var(--fg-soft); text-align: center; padding: 32px 16px; margin: 0; }
 
 table.diff { border-collapse: collapse; width: 100%; font-family: var(--font-mono); font-size: 13px; }
@@ -252,6 +257,10 @@ table.diff .sign { width: 1.4em; text-align: center; user-select: none; color: v
 [data-scheme="mono"] .seg-del { text-decoration: line-through; }
 [data-scheme="mono"] .seg-ins { text-decoration: underline; }
 
+/* 現在の相違ブロックの強調（色差分を潰さない outline 方式） */
+tr.diff-current { outline: 2px solid var(--accent); outline-offset: -2px; }
+.seg.diff-current { outline: 2px solid var(--accent); outline-offset: 1px; border-radius: 2px; }
+
 /* whitespace glyphs & whitespace-only emphasis */
 .ws { color: var(--ws-color); opacity: 0.85; }
 .ws-strong { background: var(--ws-strong-bg) !important; outline: 1px solid var(--ws-strong-outline); border-radius: 2px; }
@@ -272,6 +281,7 @@ body.embed .brand,
 body.embed .privacy,
 body.embed .app-footer { display: none; }
 body.embed .app-header { justify-content: flex-end; }
+body.embed .result { max-height: 600px; }
 
 @media (max-width: 720px) {
   .panes { grid-template-columns: 1fr; }

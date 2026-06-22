@@ -30,6 +30,8 @@ const DEFAULTS = {
 let state = { ...DEFAULTS };
 let lastModel = null;
 let isEmbed = false;
+let diffBlocks = [];   // 相違ブロック（各要素 = そのブロックの DOM 要素配列）
+let currentDiff = -1;  // 現在の相違インデックス（-1 = 未選択）
 
 /* ---------- 設定の保存/復元 ---------- */
 function loadSettings() {
@@ -69,6 +71,7 @@ function render(model) {
   if (empty) {
     result.innerHTML = `<p class="placeholder" data-i18n="emptyState">${t(state.lang, 'emptyState')}</p>`;
     $('stats').innerHTML = '';
+    rebuildDiffNav();
     postHeight();
     return;
   }
@@ -79,6 +82,7 @@ function render(model) {
     result.innerHTML = streamHtml(model);
   }
   result.classList.toggle('hide-lineno', !state.lineNumbers);
+  rebuildDiffNav();
   postHeight();
 }
 
@@ -86,6 +90,65 @@ function render(model) {
 function postHeight() {
   if (!isEmbed) return;
   try { parent.postMessage({ type: 'wisediff:height', h: document.documentElement.scrollHeight }, '*'); } catch {}
+}
+
+/* ---------- 相違箇所のジャンプ ---------- */
+/* #result から「連続する変更要素」を1ブロックに束ねて収集する（行/ストリーム両対応） */
+function collectDiffBlocks() {
+  const result = $('result');
+  const blocks = [];
+  let cur = null;
+  const group = (nodes, isChanged) => {
+    for (const el of nodes) {
+      if (isChanged(el)) { if (!cur) { cur = []; blocks.push(cur); } cur.push(el); }
+      else cur = null;
+    }
+  };
+  const rows = result.querySelectorAll('table.diff > tbody > tr.row');
+  if (rows.length) {
+    group(rows, (tr) => !tr.classList.contains('row-equal'));
+  } else {
+    group(result.querySelectorAll('.diff.stream > .seg'), (sp) => !sp.classList.contains('seg-same'));
+  }
+  return blocks;
+}
+
+function rebuildDiffNav() {
+  // 既存ハイライトを除去してから再収集
+  for (const b of diffBlocks) for (const el of b) el.classList.remove('diff-current');
+  diffBlocks = collectDiffBlocks();
+  currentDiff = -1;
+  const nav = $('diffNav');
+  if (nav) nav.hidden = diffBlocks.length === 0;
+  updateDiffCounter();
+}
+
+function updateDiffCounter() {
+  const el = $('diffNavCounter');
+  if (!el) return;
+  const n = diffBlocks.length;
+  const label = t(state.lang, 'diffNavLabel');
+  el.textContent = n === 0 ? '' : (currentDiff < 0 ? `${label} ${n}` : `${currentDiff + 1} / ${n}`);
+}
+
+function gotoDiff(idx) {
+  const n = diffBlocks.length;
+  if (n === 0) return;
+  if (currentDiff >= 0 && diffBlocks[currentDiff]) for (const el of diffBlocks[currentDiff]) el.classList.remove('diff-current');
+  currentDiff = ((idx % n) + n) % n; // 循環
+  const block = diffBlocks[currentDiff];
+  for (const el of block) el.classList.add('diff-current');
+  scrollToBlock(block[0]);
+  updateDiffCounter();
+}
+
+/* 対象ブロック先頭が #result の中央に来るよう内部スクロール（window/親は動かさない） */
+function scrollToBlock(el) {
+  const r = $('result');
+  if (!r || !el) return;
+  const top = (el.getBoundingClientRect().top - r.getBoundingClientRect().top) + r.scrollTop
+    - (r.clientHeight / 2) + (el.getBoundingClientRect().height / 2);
+  try { r.scrollTo({ top, behavior: 'smooth' }); } catch { r.scrollTop = top; }
 }
 
 function lineSbsHtml(model) {
@@ -330,6 +393,10 @@ function bind() {
   $('btnCopyA').addEventListener('click', () => copyText($('inputA').value, $('btnCopyA')));
   $('btnCopyB').addEventListener('click', () => copyText($('inputB').value, $('btnCopyB')));
   $('btnSave').addEventListener('click', saveHtml);
+
+  // 相違箇所ジャンプ
+  $('btnNextDiff').addEventListener('click', () => gotoDiff(currentDiff + 1));
+  $('btnPrevDiff').addEventListener('click', () => gotoDiff(currentDiff <= 0 ? diffBlocks.length - 1 : currentDiff - 1));
 
   // 入力
   for (const side of ['A', 'B']) {
