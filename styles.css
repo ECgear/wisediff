@@ -137,6 +137,7 @@ select, .icon-btn, button {
 }
 button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
 button.mini { padding: 4px 9px; font-size: 0.78rem; }
+#btnSearch.active { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
 button:hover, select:hover { border-color: var(--accent); }
 button.flash { animation: flash 0.6s; }
 @keyframes flash { 0%,100% { } 30% { background: var(--accent); color: var(--accent-fg); } }

@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Jump to differences.** Prev/Next buttons with a counter move between changed blocks,
   scrolling each to the center of the result and highlighting the current one; the result area
   is now an internal scroll pane so navigation works both standalone and embedded.
+- **Find & replace button.** A visible toggle opens the search/replace bar (previously only
+  reachable via Ctrl/⌘+F, which was undiscoverable when embedded).
 
 ### Changed
 - "Copy result" is now two buttons — **Copy A** and **Copy B** — each copying only that side's text.

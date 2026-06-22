@@ -435,6 +435,7 @@ function bind() {
   $('schemeSelect').addEventListener('change', (e) => { state.scheme = e.target.value; saveSettings(); applyTheme(); });
 
   // 検索バー
+  $('btnSearch').addEventListener('click', toggleSearch);
   $('findInput').addEventListener('input', updateHighlights);
   $('optRegex').addEventListener('change', () => { syncRegexHelp(); updateHighlights(); });
   $('optMatchCase').addEventListener('change', updateHighlights);
@@ -452,8 +453,15 @@ function bind() {
   });
 }
 
-function openSearch() { $('searchBar').hidden = false; syncRegexHelp(); $('findInput').focus(); $('findInput').select(); updateHighlights(); }
-function closeSearch() { $('searchBar').hidden = true; $('regexHelp').hidden = true; for (const s of ['A', 'B']) $('hl' + s).innerHTML = ''; }
+function setSearchToggle(open) {
+  const b = $('btnSearch');
+  if (!b) return;
+  b.setAttribute('aria-expanded', open ? 'true' : 'false');
+  b.classList.toggle('active', open);
+}
+function openSearch() { $('searchBar').hidden = false; setSearchToggle(true); syncRegexHelp(); $('findInput').focus(); $('findInput').select(); updateHighlights(); }
+function closeSearch() { $('searchBar').hidden = true; $('regexHelp').hidden = true; setSearchToggle(false); for (const s of ['A', 'B']) $('hl' + s).innerHTML = ''; }
+function toggleSearch() { if ($('searchBar').hidden) openSearch(); else closeSearch(); }
 
 /* ---------- 正規表現の早見表 ---------- */
 function buildRegexHelp() {
