@@ -13,7 +13,6 @@ export const STRINGS = {
     leftPlaceholder: 'ここに元の文章を貼り付け / 入力',
     rightPlaceholder: 'ここに比較する文章を貼り付け / 入力',
     compare: '比較する',
-    live: 'ライブ比較',
     clear: '全消去',
     swap: '左右入替',
     copyA: 'Aの結果をコピー',
@@ -76,9 +75,8 @@ export const STRINGS = {
     ],
     largeInputNotice: (aLines, bLines) =>
       `大きな入力です（A: ${aLines.toLocaleString()} 行 / B: ${bLines.toLocaleString()} 行）。`
-      + `処理はすべてこの端末のブラウザ内で行われ、サーバーには送信されません。`
-      + `表示が重いときは、数千行ずつに分割して比較するとすぐに結果が出ます。`,
-    largeInputLiveHint: 'ライブ比較をオフにすると、入力中の引っかかりを減らせます。',
+      + `動作が重くならないよう自動比較を一時停止しました。［比較する］で1回だけ比較します`
+      + `（処理はすべて端末内・送信なし）。重いときは数千行ずつに分割すると快適です。`,
     replacedN: (n) => `${n} 件置換しました`,
     stats: '差分',
     added: '追加',
@@ -108,7 +106,6 @@ export const STRINGS = {
     leftPlaceholder: 'Paste or type the original text here',
     rightPlaceholder: 'Paste or type the text to compare here',
     compare: 'Compare',
-    live: 'Live',
     clear: 'Clear',
     swap: 'Swap',
     copyA: 'Copy A',
@@ -171,9 +168,8 @@ export const STRINGS = {
     ],
     largeInputNotice: (aLines, bLines) =>
       `Large input (A: ${aLines.toLocaleString()} lines / B: ${bLines.toLocaleString()} lines). `
-      + `Everything runs inside your browser — nothing is uploaded to a server. `
-      + `If it feels slow, compare a few thousand lines at a time for instant results.`,
-    largeInputLiveHint: 'Turn off Live to reduce lag while typing.',
+      + `Auto-compare is paused to keep things responsive — click "Compare" to run it once `
+      + `(all in your browser; nothing is uploaded). For very large texts, compare a few thousand lines at a time.`,
     replacedN: (n) => `Replaced ${n}`,
     stats: 'Changes',
     added: 'added',

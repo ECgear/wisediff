@@ -82,8 +82,6 @@
   </section>
 
   <section class="actions">
-    <button type="button" id="btnCompare" class="primary" data-i18n="compare"></button>
-    <label class="chk"><input type="checkbox" id="optLive"><span data-i18n="live"></span></label>
     <button type="button" id="btnSwap" data-i18n="swap"></button>
     <button type="button" id="btnClear" data-i18n="clear"></button>
     <span class="spacer"></span>
@@ -113,7 +111,10 @@
     <ul class="regex-help-list" id="regexHelpList"></ul>
   </div>
 
-  <p class="size-notice" id="sizeNotice" hidden></p>
+  <div class="size-notice" id="sizeNotice" hidden>
+    <span id="sizeNoticeText"></span>
+    <button type="button" id="btnComparePaused" class="primary" data-i18n="compare"></button>
+  </div>
 
   <div class="stats" id="stats"></div>
   <div class="result" id="result"></div>

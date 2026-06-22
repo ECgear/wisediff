@@ -207,13 +207,16 @@ button.flash { animation: flash 0.6s; }
 .rx-token:hover { border-color: var(--accent); background: var(--accent); color: var(--accent-fg); }
 .rx-desc { color: var(--fg-soft); }
 
-/* 大入力時のパフォーマンス案内 */
+/* 大入力時の案内＋手動「比較する」 */
 .size-notice {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   margin: 0 0 12px; font-size: 0.82rem; line-height: 1.6; color: var(--fg);
   background: var(--ws-strong-bg); border: 1px solid var(--ws-strong-outline);
   border-radius: 8px; padding: 8px 12px;
 }
 .size-notice[hidden] { display: none; }
+.size-notice #sizeNoticeText { flex: 1 1 240px; }
+.size-notice button { flex: 0 0 auto; }
 
 /* stats */
 .stats { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; font-size: 0.82rem; min-height: 24px; }

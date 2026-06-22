@@ -15,14 +15,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   UTF-8 (BOM), Shift_JIS, EUC-JP, ISO-2022-JP and UTF-16 LE/BE are handled; falls back to UTF-8.
 - **Regex quick reference.** Checking the regex option reveals a cheat sheet of common tokens
   with short descriptions; click a token to insert it into the search box.
-- **Large-input notice.** When either side is very large (>5,000 lines or >500,000 chars), a
-  non-blocking hint explains that everything runs in the browser (no server is involved) and
-  suggests splitting into smaller chunks for instant results.
+- **Large-input safeguard.** Very large inputs (>10,000 lines or >1,000,000 chars) pause
+  auto-compare and show a one-click **Compare** plus a note that everything runs in the browser
+  (no server) and that splitting into smaller chunks is faster — so huge pastes never freeze the page.
 - **Embed mode (`?embed=1`).** Hides the brand and footer and reports content height to the
   parent via `postMessage`, for embedding the tool in a host page (used on make-good-life.com).
 
 ### Changed
 - "Copy result" is now two buttons — **Copy A** and **Copy B** — each copying only that side's text.
+- **Comparison is always live.** The manual "Compare" button and the "Live" toggle were removed;
+  diffs update as you type (Ctrl/⌘+Enter still forces a compare). See the large-input safeguard above
+  for how very large inputs are handled.
 
 ### Removed
 - The "Save on this device" / "Clear saved" buttons. Text-persistence code remains but is off by

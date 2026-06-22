@@ -14,15 +14,16 @@ import { STRINGS, t } from './i18n.js';
 const $ = (id) => document.getElementById(id);
 const SETTINGS_KEY = 'wisediff:settings';
 const TEXT_KEY = 'wisediff:text';
-// 大入力の目安（重い時に分割を促す端末側パフォーマンス案内。サーバー処理ではない）
-const LARGE_LINES = 5000;
-const LARGE_CHARS = 500000;
+// 自動比較を一時停止する目安（巨大入力で固まるのを防ぐ。常時ライブだが、超えたら手動比較）。
+// 通信ゼロ＝サーバー負荷ではなく、閲覧端末の体感速度のための目安。
+const HEAVY_LINES = 10000;
+const HEAVY_CHARS = 1000000;
 
 const DEFAULTS = {
   lang: (navigator.language || 'ja').startsWith('ja') ? 'ja' : 'en',
   mode: 'line', view: 'sbs',
   showWs: false, ignoreWs: false, ignoreCase: false,
-  syncScroll: false, lineNumbers: true, live: true,
+  syncScroll: false, lineNumbers: true,
   theme: 'light', scheme: 'default',
 };
 
@@ -156,29 +157,37 @@ function renderStats(model) {
 /* ---------- 比較実行 ---------- */
 function compare() {
   const a = $('inputA').value, b = $('inputB').value;
-  updateSizeNotice(a, b);
+  updateSizeNotice();
   lastModel = computeDiff(a, b, { mode: state.mode, ignoreCase: state.ignoreCase, ignoreWhitespace: state.ignoreWs });
   render(lastModel);
 }
-
-/* 大入力時の案内（非ブロッキング。閾値未満では非表示） */
-function updateSizeNotice(a, b) {
-  const el = $('sizeNotice');
-  if (!el) return;
-  const aLines = a ? a.split('\n').length : 0;
-  const bLines = b ? b.split('\n').length : 0;
-  const heavy = aLines > LARGE_LINES || bLines > LARGE_LINES || a.length > LARGE_CHARS || b.length > LARGE_CHARS;
-  if (!heavy) { el.hidden = true; el.textContent = ''; return; }
-  let msg = t(state.lang, 'largeInputNotice', aLines, bLines);
-  if (state.live) msg += ' ' + t(state.lang, 'largeInputLiveHint');
-  el.textContent = msg;
-  el.hidden = false;
-}
 let debTimer = null;
 function liveCompare() {
-  if (!state.live) return;
+  // 常時ライブ。ただし巨大入力は固まりを避けるため自動比較を止め、案内の「比較する」で手動計算する。
+  if (isHeavy($('inputA').value, $('inputB').value)) { clearTimeout(debTimer); updateSizeNotice(); return; }
   clearTimeout(debTimer);
   debTimer = setTimeout(compare, 180);
+}
+
+/* 行数を配列確保なしで数える（巨大文字列でも軽い） */
+function countLines(s) {
+  let n = 1;
+  for (let i = 0; i < s.length; i++) if (s.charCodeAt(i) === 10) n++;
+  return n;
+}
+function isHeavy(a, b) {
+  if (a.length > HEAVY_CHARS || b.length > HEAVY_CHARS) return true;
+  return countLines(a) > HEAVY_LINES || countLines(b) > HEAVY_LINES;
+}
+
+/* 巨大入力の案内＋手動「比較する」（閾値未満では非表示） */
+function updateSizeNotice() {
+  const el = $('sizeNotice');
+  if (!el) return;
+  const a = $('inputA').value, b = $('inputB').value;
+  if (!isHeavy(a, b)) { el.hidden = true; return; }
+  $('sizeNoticeText').textContent = t(state.lang, 'largeInputNotice', countLines(a), countLines(b));
+  el.hidden = false;
 }
 
 /* ---------- 検索ハイライト（入力欄のオーバーレイ） ---------- */
@@ -295,7 +304,6 @@ function applyTheme() {
 
 /* ---------- コントロールの初期化 ---------- */
 function reflectControls() {
-  $('optLive').checked = state.live;
   $('optShowWs').checked = state.showWs;
   $('optIgnoreWs').checked = state.ignoreWs;
   $('optIgnoreCase').checked = state.ignoreCase;
@@ -309,7 +317,7 @@ function reflectControls() {
 }
 
 function bind() {
-  $('btnCompare').addEventListener('click', compare);
+  $('btnComparePaused').addEventListener('click', compare);
   $('btnSwap').addEventListener('click', () => {
     const a = $('inputA').value; $('inputA').value = $('inputB').value; $('inputB').value = a;
     persistTextIfEnabled(); compare(); updateHighlights();
@@ -349,7 +357,6 @@ function bind() {
   for (const el of document.querySelectorAll('[data-lang]')) el.addEventListener('click', () => { state.lang = el.dataset.lang; saveSettings(); applyI18n(); reflectControls(); buildRegexHelp(); if (lastModel) render(lastModel); });
 
   // オプション
-  $('optLive').addEventListener('change', (e) => { state.live = e.target.checked; saveSettings(); });
   $('optShowWs').addEventListener('change', (e) => { state.showWs = e.target.checked; saveSettings(); if (lastModel) render(lastModel); });
   $('optIgnoreWs').addEventListener('change', (e) => { state.ignoreWs = e.target.checked; saveSettings(); compare(); });
   $('optIgnoreCase').addEventListener('change', (e) => { state.ignoreCase = e.target.checked; saveSettings(); compare(); });
