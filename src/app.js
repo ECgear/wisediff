@@ -8,11 +8,15 @@
 import { computeDiff } from './diffEngine.js';
 import { isWhitespaceOnly, segHtml, escapeHtml } from './whitespace.js';
 import { findMatches, applyReplace, validateRegex } from './searchReplace.js';
+import { detectAndDecode } from './encoding.js';
 import { STRINGS, t } from './i18n.js';
 
 const $ = (id) => document.getElementById(id);
 const SETTINGS_KEY = 'wisediff:settings';
 const TEXT_KEY = 'wisediff:text';
+// 大入力の目安（重い時に分割を促す端末側パフォーマンス案内。サーバー処理ではない）
+const LARGE_LINES = 5000;
+const LARGE_CHARS = 500000;
 
 const DEFAULTS = {
   lang: (navigator.language || 'ja').startsWith('ja') ? 'ja' : 'en',
@@ -24,6 +28,7 @@ const DEFAULTS = {
 
 let state = { ...DEFAULTS };
 let lastModel = null;
+let isEmbed = false;
 
 /* ---------- 設定の保存/復元 ---------- */
 function loadSettings() {
@@ -63,6 +68,7 @@ function render(model) {
   if (empty) {
     result.innerHTML = `<p class="placeholder" data-i18n="emptyState">${t(state.lang, 'emptyState')}</p>`;
     $('stats').innerHTML = '';
+    postHeight();
     return;
   }
   renderStats(model);
@@ -72,6 +78,13 @@ function render(model) {
     result.innerHTML = streamHtml(model);
   }
   result.classList.toggle('hide-lineno', !state.lineNumbers);
+  postHeight();
+}
+
+/* 埋め込み(iframe)時、親ページへ高さを通知（postMessage は connect-src 'none' に抵触しない） */
+function postHeight() {
+  if (!isEmbed) return;
+  try { parent.postMessage({ type: 'wisediff:height', h: document.documentElement.scrollHeight }, '*'); } catch {}
 }
 
 function lineSbsHtml(model) {
@@ -143,8 +156,23 @@ function renderStats(model) {
 /* ---------- 比較実行 ---------- */
 function compare() {
   const a = $('inputA').value, b = $('inputB').value;
+  updateSizeNotice(a, b);
   lastModel = computeDiff(a, b, { mode: state.mode, ignoreCase: state.ignoreCase, ignoreWhitespace: state.ignoreWs });
   render(lastModel);
+}
+
+/* 大入力時の案内（非ブロッキング。閾値未満では非表示） */
+function updateSizeNotice(a, b) {
+  const el = $('sizeNotice');
+  if (!el) return;
+  const aLines = a ? a.split('\n').length : 0;
+  const bLines = b ? b.split('\n').length : 0;
+  const heavy = aLines > LARGE_LINES || bLines > LARGE_LINES || a.length > LARGE_CHARS || b.length > LARGE_CHARS;
+  if (!heavy) { el.hidden = true; el.textContent = ''; return; }
+  let msg = t(state.lang, 'largeInputNotice', aLines, bLines);
+  if (state.live) msg += ' ' + t(state.lang, 'largeInputLiveHint');
+  el.textContent = msg;
+  el.hidden = false;
 }
 let debTimer = null;
 function liveCompare() {
@@ -220,17 +248,23 @@ function doReplace(all) {
 function loadFileInto(side, file) {
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = () => { $('input' + side).value = String(reader.result); persistTextIfEnabled(); compare(); updateHighlights(); };
-  reader.readAsText(file);
+  reader.onload = () => {
+    // 文字コードを自動判定（Shift_JIS / EUC-JP / UTF-8(BOM) / UTF-16 等）して文字化けを防ぐ
+    let text = '';
+    try { text = detectAndDecode(reader.result).text; }
+    catch { try { text = new TextDecoder().decode(reader.result); } catch { text = ''; } }
+    $('input' + side).value = text;
+    persistTextIfEnabled(); compare(); updateHighlights();
+  };
+  reader.readAsArrayBuffer(file);
 }
 
 /* ---------- 結果のコピー/保存 ---------- */
-async function copyResult() {
-  const text = $('result').innerText;
-  try { await navigator.clipboard.writeText(text); flash($('btnCopy')); }
+async function copyText(text, btn) {
+  try { await navigator.clipboard.writeText(text); flash(btn); }
   catch {
     const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta);
-    ta.select(); try { document.execCommand('copy'); flash($('btnCopy')); } catch {} ta.remove();
+    ta.select(); try { document.execCommand('copy'); flash(btn); } catch {} ta.remove();
   }
 }
 function saveHtml() {
@@ -281,9 +315,12 @@ function bind() {
     persistTextIfEnabled(); compare(); updateHighlights();
   });
   $('btnClear').addEventListener('click', () => {
-    $('inputA').value = ''; $('inputB').value = ''; persistTextIfEnabled(); compare(); updateHighlights();
+    $('inputA').value = ''; $('inputB').value = '';
+    try { localStorage.removeItem(TEXT_KEY); } catch {} // 「保存を削除」相当を全消去に集約
+    persistTextIfEnabled(); compare(); updateHighlights();
   });
-  $('btnCopy').addEventListener('click', copyResult);
+  $('btnCopyA').addEventListener('click', () => copyText($('inputA').value, $('btnCopyA')));
+  $('btnCopyB').addEventListener('click', () => copyText($('inputB').value, $('btnCopyB')));
   $('btnSave').addEventListener('click', saveHtml);
 
   // 入力
@@ -309,7 +346,7 @@ function bind() {
   // モード/表示/言語
   for (const el of document.querySelectorAll('[data-mode]')) el.addEventListener('click', () => { state.mode = el.dataset.mode; saveSettings(); reflectControls(); compare(); });
   for (const el of document.querySelectorAll('[data-view]')) el.addEventListener('click', () => { state.view = el.dataset.view; saveSettings(); reflectControls(); render(lastModel || { kind: 'line', rows: [], stats: {}, meta: { left: {}, right: {} } }); });
-  for (const el of document.querySelectorAll('[data-lang]')) el.addEventListener('click', () => { state.lang = el.dataset.lang; saveSettings(); applyI18n(); reflectControls(); if (lastModel) render(lastModel); });
+  for (const el of document.querySelectorAll('[data-lang]')) el.addEventListener('click', () => { state.lang = el.dataset.lang; saveSettings(); applyI18n(); reflectControls(); buildRegexHelp(); if (lastModel) render(lastModel); });
 
   // オプション
   $('optLive').addEventListener('change', (e) => { state.live = e.target.checked; saveSettings(); });
@@ -323,13 +360,9 @@ function bind() {
   $('btnTheme').addEventListener('click', () => { state.theme = state.theme === 'dark' ? 'light' : 'dark'; saveSettings(); applyTheme(); });
   $('schemeSelect').addEventListener('change', (e) => { state.scheme = e.target.value; saveSettings(); applyTheme(); });
 
-  // ローカル保存
-  $('btnSaveLocal').addEventListener('click', () => { state.saveText = true; saveSettings(); persistTextIfEnabled(); flash($('btnSaveLocal')); });
-  $('btnClearSaved').addEventListener('click', () => { state.saveText = false; saveSettings(); try { localStorage.removeItem(TEXT_KEY); } catch {} flash($('btnClearSaved')); });
-
   // 検索バー
   $('findInput').addEventListener('input', updateHighlights);
-  $('optRegex').addEventListener('change', updateHighlights);
+  $('optRegex').addEventListener('change', () => { syncRegexHelp(); updateHighlights(); });
   $('optMatchCase').addEventListener('change', updateHighlights);
   for (const el of document.querySelectorAll('input[name="searchTarget"]')) el.addEventListener('change', updateHighlights);
   $('btnReplaceOne').addEventListener('click', () => doReplace(false));
@@ -345,22 +378,64 @@ function bind() {
   });
 }
 
-function openSearch() { $('searchBar').hidden = false; $('findInput').focus(); $('findInput').select(); updateHighlights(); }
-function closeSearch() { $('searchBar').hidden = true; for (const s of ['A', 'B']) $('hl' + s).innerHTML = ''; }
+function openSearch() { $('searchBar').hidden = false; syncRegexHelp(); $('findInput').focus(); $('findInput').select(); updateHighlights(); }
+function closeSearch() { $('searchBar').hidden = true; $('regexHelp').hidden = true; for (const s of ['A', 'B']) $('hl' + s).innerHTML = ''; }
+
+/* ---------- 正規表現の早見表 ---------- */
+function buildRegexHelp() {
+  const list = $('regexHelpList');
+  if (!list) return;
+  const items = t(state.lang, 'regexExamples') || [];
+  list.innerHTML = '';
+  for (const it of items) {
+    const li = document.createElement('li');
+    const code = document.createElement('code');
+    code.className = 'rx-token';
+    code.textContent = it.p;
+    const ins = it.ins != null ? it.ins : it.p;
+    code.title = ins;
+    code.addEventListener('click', () => insertIntoFind(ins));
+    const desc = document.createElement('span');
+    desc.className = 'rx-desc';
+    desc.textContent = it.d;
+    li.appendChild(code); li.appendChild(desc);
+    list.appendChild(li);
+  }
+}
+function syncRegexHelp() {
+  const el = $('regexHelp');
+  if (el) el.hidden = !$('optRegex').checked;
+}
+function insertIntoFind(token) {
+  const fi = $('findInput');
+  const s = fi.selectionStart != null ? fi.selectionStart : fi.value.length;
+  const e = fi.selectionEnd != null ? fi.selectionEnd : fi.value.length;
+  fi.value = fi.value.slice(0, s) + token + fi.value.slice(e);
+  const caret = s + token.length;
+  fi.focus(); try { fi.setSelectionRange(caret, caret); } catch {}
+  updateHighlights();
+}
 
 /* ---------- 起動 ---------- */
 function init() {
+  // make-good-life.com への iframe 埋め込み（?embed=1）ではサイト側がヘッダ/フッタを提供する
+  try { isEmbed = new URLSearchParams(location.search).get('embed') === '1'; } catch {}
+  if (isEmbed) document.body.classList.add('embed');
   loadSettings();
   applyI18n();
   applyTheme();
   reflectControls();
+  buildRegexHelp();
   bind();
-  // 保存テキストの復元
+  // 保存テキストの復元（既定オフ。過去に保存を有効化した利用者のみ復元される）
   if (state.saveText) {
     try {
       const tx = JSON.parse(localStorage.getItem(TEXT_KEY) || 'null');
       if (tx) { $('inputA').value = tx.a || ''; $('inputB').value = tx.b || ''; }
     } catch {}
+  }
+  if (isEmbed && 'ResizeObserver' in window) {
+    try { new ResizeObserver(() => postHeight()).observe(document.body); } catch {}
   }
   compare();
 }

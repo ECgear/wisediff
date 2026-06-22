@@ -6,6 +6,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-22
+
+### Added
+- **Character-encoding auto-detection on file load.** Files are decoded by detecting BOM,
+  ISO-2022-JP escape sequences, UTF-8 validity, then scoring Shift_JIS / EUC-JP candidates,
+  so CSV and text saved in Japanese legacy encodings no longer turn into mojibake. UTF-8,
+  UTF-8 (BOM), Shift_JIS, EUC-JP, ISO-2022-JP and UTF-16 LE/BE are handled; falls back to UTF-8.
+- **Regex quick reference.** Checking the regex option reveals a cheat sheet of common tokens
+  with short descriptions; click a token to insert it into the search box.
+- **Large-input notice.** When either side is very large (>5,000 lines or >500,000 chars), a
+  non-blocking hint explains that everything runs in the browser (no server is involved) and
+  suggests splitting into smaller chunks for instant results.
+- **Embed mode (`?embed=1`).** Hides the brand and footer and reports content height to the
+  parent via `postMessage`, for embedding the tool in a host page (used on make-good-life.com).
+
+### Changed
+- "Copy result" is now two buttons — **Copy A** and **Copy B** — each copying only that side's text.
+
+### Removed
+- The "Save on this device" / "Clear saved" buttons. Text-persistence code remains but is off by
+  default for privacy; **Clear** now also clears any previously saved text.
+
 ## [0.1.0] - 2026-06-20
 
 ### Added
@@ -31,5 +53,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Offline single-file build (`npm run build` → `dist/index.html`), zero runtime dependencies;
   diff libraries are vendored (jsdiff BSD-3-Clause, diff-match-patch-es Apache-2.0).
 
-[Unreleased]: https://github.com/ECgear/wisediff/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/ECgear/wisediff/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/ECgear/wisediff/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/ECgear/wisediff/releases/tag/v0.1.0

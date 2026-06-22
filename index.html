@@ -87,10 +87,9 @@
     <button type="button" id="btnSwap" data-i18n="swap"></button>
     <button type="button" id="btnClear" data-i18n="clear"></button>
     <span class="spacer"></span>
-    <button type="button" id="btnCopy" data-i18n="copyResult"></button>
+    <button type="button" id="btnCopyA" data-i18n="copyA"></button>
+    <button type="button" id="btnCopyB" data-i18n="copyB"></button>
     <button type="button" id="btnSave" data-i18n="saveHtml"></button>
-    <button type="button" id="btnSaveLocal" class="mini" data-i18n="saveLocal"></button>
-    <button type="button" id="btnClearSaved" class="mini" data-i18n="clearSaved"></button>
   </section>
 
   <div class="search-bar" id="searchBar" hidden>
@@ -109,6 +108,12 @@
     <span id="searchStatus" class="search-status"></span>
     <button type="button" id="btnSearchClose" class="icon-btn" aria-label="close">✕</button>
   </div>
+  <div class="regex-help" id="regexHelp" hidden>
+    <span class="regex-help-title" data-i18n="regexHelpTitle"></span>
+    <ul class="regex-help-list" id="regexHelpList"></ul>
+  </div>
+
+  <p class="size-notice" id="sizeNotice" hidden></p>
 
   <div class="stats" id="stats"></div>
   <div class="result" id="result"></div>

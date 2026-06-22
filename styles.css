@@ -188,6 +188,33 @@ button.flash { animation: flash 0.6s; }
 .target-group label { display: inline-flex; align-items: center; gap: 2px; }
 .search-status { font-size: 0.82rem; color: var(--fg-soft); min-width: 40px; }
 
+/* regex cheatsheet（正規表現チェック時に表示） */
+.regex-help {
+  background: var(--bg-soft); border: 1px solid var(--border); border-radius: 8px;
+  padding: 8px 12px; margin: -4px 0 12px; font-size: 0.82rem;
+}
+.regex-help[hidden] { display: none; }
+.regex-help-title { display: block; color: var(--fg-soft); font-weight: 600; margin-bottom: 6px; }
+.regex-help-list {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4px 14px;
+}
+.regex-help-list li { display: flex; align-items: baseline; gap: 8px; }
+.rx-token {
+  font-family: var(--font-mono); background: var(--bg-panel); color: var(--accent);
+  border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; cursor: pointer; white-space: nowrap;
+}
+.rx-token:hover { border-color: var(--accent); background: var(--accent); color: var(--accent-fg); }
+.rx-desc { color: var(--fg-soft); }
+
+/* 大入力時のパフォーマンス案内 */
+.size-notice {
+  margin: 0 0 12px; font-size: 0.82rem; line-height: 1.6; color: var(--fg);
+  background: var(--ws-strong-bg); border: 1px solid var(--ws-strong-outline);
+  border-radius: 8px; padding: 8px 12px;
+}
+.size-notice[hidden] { display: none; }
+
 /* stats */
 .stats { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; font-size: 0.82rem; min-height: 24px; }
 .stat { font-weight: 600; }
@@ -235,6 +262,13 @@ table.diff .sign { width: 1.4em; text-align: center; user-select: none; color: v
 
 /* exported HTML */
 body.export { padding: 16px; }
+
+/* make-good-life.com への iframe 埋め込み（?embed=1）。ヘッダ/フッタはサイト側が提供 */
+body.embed { padding-top: 8px; }
+body.embed .brand,
+body.embed .privacy,
+body.embed .app-footer { display: none; }
+body.embed .app-header { justify-content: flex-end; }
 
 @media (max-width: 720px) {
   .panes { grid-template-columns: 1fr; }

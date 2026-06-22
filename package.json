@@ -1,6 +1,6 @@
 {
   "name": "wisediff",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Privacy-first, client-side text diff tool. Search, replace, regex, whitespace-aware, with clear newline differences. Nothing is uploaded — everything runs in the browser.",

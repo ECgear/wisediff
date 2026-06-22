@@ -27,3 +27,6 @@ npm-debug.log*
 Thumbs.db
 .vscode/
 .idea/
+
+# Session handover notes (never commit, any location)
+HANDOVER.md

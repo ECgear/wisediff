@@ -65,16 +65,24 @@ curl -fsSL "https://cdn.jsdelivr.net/npm/diff-match-patch-es@<X.Y.Z>/+esm" -o sr
 ## make-good-life.com（/tools/diff/）への配備
 
 公開サイトは別リポ（KMDRKK アカウント、Astro + Firebase Hosting、git 管理は `site/` のみ）。
-**自己完結 HTML を `public/` に置く方式**（既存の `ac` ツールと同じ Pattern A）。
+**サイトのヘッダ／パンくず／フッターを付けて配信する Pattern B**（既存 `image` ツール方式）。
+ツール本体（自己完結 HTML）を `public/tools/diff/app/` に置き、Astro ページ
+`src/pages/tools/diff.astro` が `BaseLayout` + `Breadcrumbs` でラップして `/tools/diff/` を生成、
+本体を iframe（`/tools/diff/app/?embed=1`）で埋め込む。本体は `?embed=1` のときブランド／フッターを隠し、
+`postMessage` で高さを通知する（iframe が自動で高さ追従）。OSS ソースは1つのまま、本体を変えたら
+再ビルド＋下記 cp だけで本番に反映できる（単一ソース）。
 
 ```bash
-npm run build   # dist/index.html を生成
-cp dist/index.html /Users/xx/Cursor/makegoodlife/site/public/tools/diff/index.html
+npm run build   # dist/index.html を生成（汎用・OSS オフライン版と同一物）
+cp dist/index.html /Users/xx/Cursor/makegoodlife/site/public/tools/diff/app/index.html
 ```
 
-加えて、ツール一覧のカードを「準備中」から公開リンクへ更新する:
-`makegoodlife/site/src/pages/tools/index.astro` の「テキスト差分」エントリを `href: null` →
-`href: '/tools/diff/'`。
+- ラッパー `diff.astro` が `/tools/diff/` を生成するため、`public/tools/diff/index.html` は**置かない**
+  （ルート衝突回避。ツール本体は必ず `app/` サブパスに置く）。
+- ツール一覧のカード（`src/pages/tools/index.astro` の「テキスト差分」）は `/tools/diff/` のままで変更不要。
+- iframe のディレクトリ配信（`/tools/diff/app/`）は Firebase（`cleanUrls` + `trailingSlash`）が解決する。
+  `astro dev` / `astro preview` はディレクトリ index を解決しないので、ローカル確認は `dist` を
+  ディレクトリ index 対応の静的サーバ（例: `python3 -m http.server --directory dist`）で行う。
 
 その後（KMDRKK 側のルール）:
 
@@ -83,9 +91,6 @@ cp dist/index.html /Users/xx/Cursor/makegoodlife/site/public/tools/diff/index.ht
 - `gh` 操作時は `gh auth switch --user KMDRKK`、remote は KMDRKK の SSH エイリアス。
 - `makegoodlife/oss/` は触らない（OSS コードではなく記事下書きの置き場）。
 - 内部リンクは絶対パス `/tools/diff/`（サイトは `trailingSlash: 'always'` / `cleanUrls`）。
-
-サイトにヘッダ・フッタ・パンくず・SEO を付けたい場合は Pattern B（`src/pages/tools/diff.astro` で
-`BaseLayout` ラップ、既存 `image` ツール方式）に切り替える。
 
 # Citations
 

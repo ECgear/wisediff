@@ -34,15 +34,6 @@
 
 それだけです。インストールも会員登録も要りません。
 
-### インターネットなしで使いたいとき（オフライン版）
-
-ネットにつながっていない環境でも使えます。
-
-1. [Releases ページ](https://github.com/ECgear/wisediff/releases) から `index.html`（単一ファイル）をダウンロードします。
-2. そのファイルを **ダブルクリック** すると、ブラウザで開いて、そのまま使えます。
-
-このファイルは1枚で完結していて、外部に一切通信しません。社内の機密文書などを比べるときも安心です。
-
 ### 改行・空白の違いがちゃんと分かります（このツールの強み）
 
 「`りんご`」と「`りんご `」（末尾に空白）のように **見た目では気づけない違い** も、はっきり強調表示します。
@@ -91,11 +82,6 @@ It covers the same need as Japan's well-known [difff](https://difff.jp/), but:
 3. Differences appear automatically — **green = added**, **red = removed**.
 
 No install, no sign-up.
-
-### Use it offline
-
-1. Download the single `index.html` from the [Releases page](https://github.com/ECgear/wisediff/releases).
-2. **Double-click** it — it opens in your browser and just works, with zero network access.
 
 ### Clear newline & whitespace diffs (the point of this tool)
 
